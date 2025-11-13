@@ -10,6 +10,8 @@ from urllib.request import urlopen
 # if this were a real password and in a github repository (which it is), 
 # it would be visible to everyone who can view the repository.
 # Better to store it in secrets or environment variables or something.
+
+# Summary: Details like passwords and other authentication information should NOT be inside the code.
 db_config = {
     'host': 'mydatabase.com',
     'user': 'admin',
@@ -26,6 +28,8 @@ db_config = {
 # there could be a check to ensure the input only contains
 # letters of the alphabet
 # Possibly also a maximum length
+
+# Summary: User input should always be validated, in this case by ensuring all characters are letters. 
 def get_user_input():
     user_input = input('Enter your name: ')
     return user_input
@@ -37,8 +41,12 @@ def get_user_input():
 # in the case that the user can imput anything (which is true as seen above),
 # the user could inject code into the system command 
 # (because it is done with string building/formatting)
+
+# Summary: Commands should NOT be built using string formatting
+# also, do not use a system command to send an email, that's just asking for trouble.
 def send_email(to, subject, body):
     os.system(f'echo {body} | mail -s "{subject}" {to}')
+
 
 # Category: Broken Access Control and Software and Data Integrity Failures
 
@@ -52,6 +60,16 @@ def send_email(to, subject, body):
 # Recommendations
 # An array should be created of trusted websites, and the url should be compared
 # To this array to see if the url the data is pulled from is trusted
+
+# Explaination #2
+# This function uses a http url, which is insecure and should be https please.
+# It could be unimportant, but maybe the url should not be included in the code, just my thoughts.
+# There could also be issues with "urlopen(url).read().decode()", I am not sure if it's outdated or insecure,
+# but it smells old, which would be not very ideal if it were the case.
+# In that case a more modern method should be used instead.
+
+# Summary: HTTP not secure, use HTTPS. 
+# Don't use outdated software code features or whatever it would be called.
 def get_data():
     url = 'http://insecure-api.com/get-data'
     data = urlopen(url).read().decode()
@@ -70,6 +88,16 @@ def get_data():
 # or alter the database 
 # Add error handling
 
+# Explanation #2
+# Possibly as a rule NEVER build queries or commands with string formatting and shove in in,
+# that method is vulnerable to injection and is also just clunky.
+# I am concerned that somehow the code could exit BEFORE closing the connection to the database,
+# which would probably not be good.
+# This function also smells outdated, and regardless another method of database interaction should be used instead
+# (because of the query building)
+
+# Summary: This function is vulnerable to sql injection and should be re-written in a way that avoids
+# building query strings please.
 def save_to_db(data):
     query = f"INSERT INTO mytable (column1, column2) VALUES ('{data}', 'Another Value')"
     connection = pymysql.connect(**db_config)
@@ -83,7 +111,7 @@ def save_to_db(data):
 
 # Explanation
 # This code executes the program which contains the insecure functions
-# I talked about earlier
+# we talked about earlier
 # For example, the get_user_input function is not validated
 # and can be used to run malicious code within the program
 # The get_data() and save_to_db() commands are insecure and can use
@@ -95,7 +123,6 @@ def save_to_db(data):
 # Do all previous recommendations and add error handling
 # within this function so that the program does not destruct upon an error
 # Validate the send_email function and add error handling for it as well
-
 if __name__ == '__main__':
     user_input = get_user_input()
     data = get_data()
